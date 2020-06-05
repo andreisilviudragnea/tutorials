@@ -1,12 +1,9 @@
 package com.baeldung.setterdi;
 
+import com.baeldung.setterdi.domain.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import com.baeldung.setterdi.domain.Engine;
-import com.baeldung.setterdi.domain.Trailer;
-import com.baeldung.setterdi.domain.Transmission;
 
 @Configuration
 @ComponentScan("com.baeldung.setterdi")
@@ -31,5 +28,15 @@ public class Config {
     public Trailer trailer() {
         Trailer trailer = new Trailer();
         return trailer;
+    }
+
+    @Bean
+    public Car2 car2() {
+        return new Car2();
+    }
+
+    @Bean
+    public Derived derived() {
+        return new Derived();
     }
 }

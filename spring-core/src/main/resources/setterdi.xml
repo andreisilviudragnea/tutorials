@@ -14,11 +14,28 @@
         <property name="volume" value="2" />
     </bean>
 
+    <bean id="engine1" class="com.baeldung.setterdi.domain.Engine">
+        <property name="type" value="v4" />
+        <property name="volume" value="2" />
+    </bean>
+
     <bean id="transmission" class="com.baeldung.setterdi.domain.Transmission">
         <property name="type" value="sliding" />
     </bean>
 
     <bean id="trailer" class="com.baeldung.setterdi.domain.Trailer">
+    </bean>
+
+    <bean id="derived" class="com.baeldung.setterdi.domain.Derived">
+        <property name="data" value="5"/>
+    </bean>
+
+    <bean id="derived2" class="com.baeldung.setterdi.domain.Derived2">
+        <property name="data" value="5"/>
+    </bean>
+
+    <bean id="derived3" class="com.baeldung.setterdi.domain.Derived3">
+        <property name="data" value="5"/>
     </bean>
 
 </beans>

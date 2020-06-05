@@ -9,9 +9,6 @@ public class Car {
     private Transmission transmission;
     private Trailer trailer;
 
-    public Car() {
-    }
-
     @Autowired
     public void setEngine(Engine engine) {
         this.engine = engine;
