@@ -18,15 +18,16 @@ class DatastoreConfig : AbstractR2dbcConfiguration() {
     @Value("\${spring.datasource.password}")
     private val password: String = ""
 
-    @Value("\${spring.datasource.dbname}")
-    private val dbName: String = ""
+    @Value("\${spring.datasource.dbpath}")
+    private val dbPath: String = ""
 
     @Bean
     override fun connectionFactory(): ConnectionFactory {
         return H2ConnectionFactory(H2ConnectionConfiguration.builder()
-          .inMemory(dbName)
-          .username(userName)
-          .password(password)
-          .build())
+            .file(dbPath)
+            .username(userName)
+            .password(password)
+            .build()
+        )
     }
 }

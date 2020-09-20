@@ -8,5 +8,5 @@ import org.springframework.web.reactive.function.client.WebClient
 class WebClientConfiguration {
 
     @Bean
-    fun webClient() = WebClient.builder().baseUrl("http://localhost:8080").build()
+    fun webClient(): WebClient = WebClient.builder().baseUrl("http://localhost:8080").build()
 }

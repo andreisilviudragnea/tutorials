@@ -84,10 +84,6 @@
             <artifactId>ktor-gson</artifactId>
             <version>${ktor.io.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -212,12 +208,12 @@
     </build>
 
     <properties>
-        <kotlin.version>1.3.30</kotlin.version>
-        <kotlinx.version>1.0.0</kotlinx.version>
-        <ktor.io.version>0.9.5</ktor.io.version>
-        <assertj.version>3.12.0</assertj.version>
-        <junit.platform.version>1.3.2</junit.platform.version>
-        <boot.dependencies.version>2.2.0.M4</boot.dependencies.version>
+        <kotlin.version>1.4.10</kotlin.version>
+        <kotlinx.version>1.3.8</kotlinx.version>
+        <ktor.io.version>1.4.0</ktor.io.version>
+        <assertj.version>3.17.2</assertj.version>
+        <junit.platform.version>1.7.0</junit.platform.version>
+        <boot.dependencies.version>2.3.4.RELEASE</boot.dependencies.version>
     </properties>
 
 </project>

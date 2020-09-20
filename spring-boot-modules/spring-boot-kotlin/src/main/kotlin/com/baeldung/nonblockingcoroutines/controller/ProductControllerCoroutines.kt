@@ -1,49 +1,52 @@
 package com.baeldung.nonblockingcoroutines.controller
 
 import com.baeldung.nonblockingcoroutines.model.Product
-import com.baeldung.nonblockingcoroutines.repository.ProductRepositoryCoroutines
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.FlowPreview
+import com.baeldung.nonblockingcoroutines.repository.ProductRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
-class ProductControllerCoroutines {
-    @Autowired
-    lateinit var webClient: WebClient
-
-    @Autowired
-    lateinit var productRepository: ProductRepositoryCoroutines
+@RestController
+@RequestMapping("/v2")
+class ProductControllerCoroutines(private val webClient: WebClient,
+                                  private val productRepositoryRedis: ProductRepository) {
 
     @GetMapping("/{id}")
     suspend fun findOne(@PathVariable id: Int): Product? {
-        return productRepository.getProductById(id)
+        return productRepositoryRedis.getProductById(id)
     }
 
     @GetMapping("/{id}/stock")
     suspend fun findOneInStock(@PathVariable id: Int): ProductStockView = coroutineScope {
-        val product: Deferred<Product?> = async(start = CoroutineStart.LAZY) {
-            productRepository.getProductById(id)
+        val product = async {
+            productRepositoryRedis.getProductById(id)
         }
-        val quantity: Deferred<Int> = async(start = CoroutineStart.LAZY) {
-            webClient.get()
-              .uri("/stock-service/product/$id/quantity")
+
+        val quantity = async {
+          webClient
+              .get()
+              .uri("/v1/stock-service/product/$id/quantity")
               .accept(APPLICATION_JSON)
-              .retrieve().awaitBody<Int>()
+              .retrieve()
+              .awaitBody<Int>()
         }
+
         ProductStockView(product.await()!!, quantity.await())
     }
 
-    @FlowPreview
-    @GetMapping("/")
+    @GetMapping
     fun findAll(): Flow<Product> {
-        return productRepository.getAllProducts()
+        return productRepositoryRedis.getAllProducts()
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    suspend fun create(@RequestBody product: Product) {
+        productRepositoryRedis.addNewProduct(product.name, product.price)
     }
 }

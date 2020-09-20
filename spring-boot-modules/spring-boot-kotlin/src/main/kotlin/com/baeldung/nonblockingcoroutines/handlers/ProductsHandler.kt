@@ -2,47 +2,60 @@ package com.baeldung.nonblockingcoroutines.handlers
 
 import com.baeldung.nonblockingcoroutines.controller.ProductStockView
 import com.baeldung.nonblockingcoroutines.model.Product
-import com.baeldung.nonblockingcoroutines.repository.ProductRepositoryCoroutines
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
+import com.baeldung.nonblockingcoroutines.repository.ProductRepository
 import kotlinx.coroutines.async
-import org.springframework.beans.factory.annotation.Autowired
+import kotlinx.coroutines.coroutineScope
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.bodyAndAwait
-import org.springframework.web.reactive.function.server.json
+import org.springframework.web.reactive.function.server.*
 
 @Component
-class ProductsHandler(
-  @Autowired var webClient: WebClient,
-  @Autowired var productRepository: ProductRepositoryCoroutines) {
+class ProductsHandler(private val webClient: WebClient,
+                      private val productRepositoryRedis: ProductRepository) {
 
-    @FlowPreview
     suspend fun findAll(request: ServerRequest): ServerResponse =
-      ServerResponse.ok().json().bodyAndAwait(productRepository.getAllProducts())
+      ServerResponse.ok().json().bodyAndAwait(productRepositoryRedis.getAllProducts())
 
-    suspend fun findOneInStock(request: ServerRequest): ServerResponse {
+    suspend fun findOneInStock(request: ServerRequest): ServerResponse = coroutineScope {
         val id = request.pathVariable("id").toInt()
 
-        val product: Deferred<Product?> = GlobalScope.async {
-            productRepository.getProductById(id)
+        val product = async {
+            productRepositoryRedis.getProductById(id)
         }
-        val quantity: Deferred<Int> = GlobalScope.async {
-            webClient.get()
-              .uri("/stock-service/product/$id/quantity")
-              .accept(MediaType.APPLICATION_JSON)
-              .retrieve().awaitBody<Int>()
+
+        val quantity = async {
+            webClient
+                .get()
+                .uri("/v1/stock-service/product/$id/quantity")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .awaitBody<Int>()
         }
-        return ServerResponse.ok().json().bodyAndAwait(ProductStockView(product.await()!!, quantity.await()))
+
+        ServerResponse
+            .ok()
+            .json()
+            .bodyValueAndAwait(ProductStockView(product.await()!!, quantity.await()))
     }
 
     suspend fun findOne(request: ServerRequest): ServerResponse {
         val id = request.pathVariable("id").toInt()
-        return ServerResponse.ok().json().bodyAndAwait(productRepository.getProductById(id)!!)
+
+        val productById = productRepositoryRedis.getProductById(id) ?: return ServerResponse.notFound().buildAndAwait()
+
+        return ServerResponse
+            .ok()
+            .json()
+            .bodyValueAndAwait(productById)
+    }
+
+    suspend fun addNewProduct(request: ServerRequest): ServerResponse {
+        val (_, name, price) = request.awaitBody<Product>()
+
+        productRepositoryRedis.addNewProduct(name, price)
+
+        return ServerResponse.ok().buildAndAwait()
     }
 }
